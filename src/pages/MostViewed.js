@@ -1,44 +1,43 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
 
 import Feed from '../components/Feed';
 
-export default function MostViewed(){
+export default function MostViewed() {
     const [posts, setPosts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
 
-
     useEffect(() => {
-        fetch('http://localhost:3001/posts/most-viewed')
-        .then(async (response) => {
-            if(!response.ok){
+        async function loadPosts() {
+            try {
+                const response = await fetch('http://localhost:3001/posts/most-viewed');
+                if (!response.ok) {
+                    setHasError(true);
+                    return;
+                }
+                const body = await response.json();
+                setPosts(body.map((post) => ({
+                    ...post,
+                    publishedAt: new Date(post.publishedAt),
+                })));
+            } catch {
                 setHasError(true);
-                return;
+            } finally {
+                setIsLoading(false);
             }
-            const body = await response.json();
-
-            setPosts(body.map((post) => ({
-                ...post,
-                publishedAt: new Date(post.publishedAt),
-            })));
-           
-        }).catch(() => {
-            setHasError(true);
-        })
-        .finally(()=>{
-            setIsLoading(false);
-        })
-    },[]);
+        }
+        loadPosts();
+    }, []);
 
     return (
         <main className="most-viewed">
-        <Feed 
-              isLoading={isLoading}
-              hasError={hasError}
-              posts={posts}
-              title="Mais vistos"
-              subtitle="Acompanhe os assuntos mais comentados no momento e fique por dentro de qualquer novidade"
-        />
-     </main>
+            <Feed
+                isLoading={isLoading}
+                hasError={hasError}
+                posts={posts}
+                title="Mais vistos"
+                subtitle="Acompanhe os assuntos mais comentados no momento e fique por dentro de qualquer novidade"
+            />
+        </main>
     );
 }
