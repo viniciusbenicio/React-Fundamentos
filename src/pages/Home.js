@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 import Feed from '../components/Feed';
 import PostForm from '../components/PostForm';
+import { getPostsList } from '../services/postsService';
 
 export default function Home() {
     const [posts, setPosts] = useState([]);
@@ -11,16 +12,12 @@ export default function Home() {
     useEffect(() => {
         async function loadPosts() {
             try {
-                const response = await fetch('http://localhost:3001/posts');
-                if (!response.ok) {
+                const postsList = await getPostsList();
+                if (!postsList) {
                     setHasError(true);
                     return;
                 }
-                const body = await response.json();
-                setPosts(body.map((post) => ({
-                    ...post,
-                    publishedAt: new Date(post.publishedAt),
-                })));
+                setPosts(postsList);
             } catch {
                 setHasError(true);
             } finally {
